@@ -1,8 +1,8 @@
 package com.wisedevs.comv.entities;
 
 import java.io.Serializable;
+import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -21,12 +22,28 @@ import com.sun.istack.NotNull;
 @Table(name="empresas")
 public class Empresa implements Serializable{
     
+	public Empresa() {
+		
+	}
+	
+	public Empresa(boolean sucursal, boolean marca, boolean turno, boolean activa,
+			@NotBlank String nombre) {
+		super();
+		this.sucursal = sucursal;
+		this.marca = marca;
+		this.turno = turno;
+		this.activa = activa;
+		this.nombre = nombre;
+	}
+
+
+
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(cascade = CascadeType.REMOVE,fetch = FetchType.LAZY)
-    @JoinColumn(name="categoria_id", nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="categoria_id", nullable=true)
     @JsonBackReference
     private Categoria categoria;
     
@@ -48,6 +65,10 @@ public class Empresa implements Serializable{
     @NotNull
     private String nombre;
     
+    
+    @ManyToMany(mappedBy = "empresas")
+    private List<Marca> marcas;
+    
     @Column
     private String BigImage;
     
@@ -57,6 +78,16 @@ public class Empresa implements Serializable{
     @Column
     private String SmallImage;
     
+
+	public List<Marca> getMarcas() {
+		return marcas;
+	}
+
+
+	public void setMarcas(List<Marca> marcas) {
+		this.marcas = marcas;
+	}
+
 
 	public String getBigImage() {
 		return BigImage;

@@ -3,7 +3,6 @@ package com.wisedevs.comv.entities;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sun.istack.NotNull;
@@ -31,45 +31,6 @@ public class Categoria implements Serializable{
     @JsonIgnoreProperties("categoria")
     @OneToMany(mappedBy = "categoria")
     private List<Empresa> empresas;
-
-    @Column
-    private String BigImage;
-    
-    @Column
-    private String MediumImage;
-    
-    @Column
-    private String SmallImage;
-    
-
-	public String getBigImage() {
-		return BigImage;
-	}
-
-
-	public void setBigImage(String bigImage) {
-		BigImage = bigImage;
-	}
-
-
-	public String getMediumImage() {
-		return MediumImage;
-	}
-
-
-	public void setMediumImage(String mediumImage) {
-		MediumImage = mediumImage;
-	}
-
-
-	public String getSmallImage() {
-		return SmallImage;
-	}
-
-
-	public void setSmallImage(String samllImage) {
-		SmallImage = samllImage;
-	}
 
 
 	public Long getId() {
@@ -98,6 +59,13 @@ public class Categoria implements Serializable{
 	  
 	  public void setEmpresas(List<Empresa> empresas) { this.empresas = empresas; }
 	 
+
+
+	@Override
+	public String toString() {
+		return "Información de la categoría:   Id: "+id+", Nombre: "+nombre+", Numero de empresas: "+empresas.size();
+	}
+
 
 
 	private static final long serialVersionUID = -5435227294074820342L;

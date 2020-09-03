@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wisedevs.comv.entities.Categoria;
+import com.wisedevs.comv.entities.Empresa;
 import com.wisedevs.comv.repositories.ICategoriaRepository;
 
 @Service
@@ -17,11 +18,11 @@ public class CategoriaServiceImpl implements ICategoriaService{
 
 	@Autowired
 	private ICategoriaRepository categoriaRepositorio;
+	
 
 	@Override
 	@Transactional
 	public ResponseEntity<String> save(Categoria categoria) {
-		
 		
 		if (categoriaRepositorio.existsByNombre(categoria.getNombre())) {
 			return new ResponseEntity<>("Ya existe una categoria con este nombre", HttpStatus.BAD_REQUEST);
@@ -52,8 +53,16 @@ public class CategoriaServiceImpl implements ICategoriaService{
 	@Override
 	@Transactional
 	public void delete(Long id) {
-		if(categoriaRepositorio.existsById(id))
-			categoriaRepositorio.deleteById(id);		
+		Optional<Categoria> cat = categoriaRepositorio.findById(id);
+		if(cat.isPresent()) {
+			Categoria categoria = cat.get();
+			
+			for(Empresa e:categoria.getEmpresas()) {
+				e.setCategoria(null);
+			}
+			categoria.setEmpresas(null);
+			categoriaRepositorio.delete(categoria);	
+		}
 	}
 
 	@Override
@@ -71,21 +80,16 @@ public class CategoriaServiceImpl implements ICategoriaService{
 
 		
 		if (categoria.getNombre()!=null && categoriaRepositorio.existsByNombre(categoria.getNombre())) {
-			return new ResponseEntity<>("Ya existe una empresa con este nombre", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Ya existe una categoria con este nombre", HttpStatus.BAD_REQUEST);
 		}
 		Categoria oldCategoriaInfo = categoriaRepositorio.findById(categoria.getId()).get();
 		
 		if(categoria.getNombre()==null) //si en el json no viene esta informacion, la info se toma de la oldempresa
 			categoria.setNombre(oldCategoriaInfo.getNombre());
 	
-		
-		categoria.setBigImage(oldCategoriaInfo.getBigImage());
-		categoria.setMediumImage(oldCategoriaInfo.getMediumImage());//desde este controlador no se puede actualizar imagenes
-		categoria.setSmallImage(oldCategoriaInfo.getSmallImage());
-		
 
-			categoriaRepositorio.save(categoria);
-			return new ResponseEntity<>("Categoria actualizada correctamente", HttpStatus.CREATED);
+		categoriaRepositorio.save(categoria);
+		return new ResponseEntity<>("Categoria actualizada correctamente", HttpStatus.CREATED);
 		
 	}
 	
