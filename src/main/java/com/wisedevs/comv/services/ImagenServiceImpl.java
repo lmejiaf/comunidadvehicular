@@ -10,17 +10,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.wisedevs.comv.entities.Categoria;
 import com.wisedevs.comv.entities.Empresa;
 import com.wisedevs.comv.entities.Imagen;
+import com.wisedevs.comv.entities.Marca;
+import com.wisedevs.comv.repositories.IEmpresaRepository;
 import com.wisedevs.comv.repositories.IImagenRepository;
+import com.wisedevs.comv.repositories.IMarcaRepository;
 
 import net.coobird.thumbnailator.Thumbnails;
 
@@ -32,10 +33,16 @@ public class ImagenServiceImpl implements IImagenService{
 	private IImagenRepository imagenRepository;
 	
 	@Autowired
-	private ICategoriaService categoriaService;
+	private IEmpresaRepository EmpresaRepository;
+	
+	@Autowired
+	private IMarcaRepository MarcaRepository;
 	
 	@Autowired
 	private IEmpresaService EmpresaService;
+	
+	@Autowired
+	private IMarcaService MarcaService;
 	
 	
 	@Override
@@ -46,11 +53,10 @@ public class ImagenServiceImpl implements IImagenService{
 
 	@Override
 	@Transactional
-	public Imagen save(MultipartFile file, HttpServletResponse response, Long id, 
+	public Imagen save(MultipartFile file, String nombre, 
 			String entidad) throws IOException {
 
 		if(file == null || file.isEmpty()) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
 			return null;//"Error: El archivo subido no exite"
 		}
 		
@@ -122,33 +128,30 @@ public class ImagenServiceImpl implements IImagenService{
 		
 		//Guadamos segun la entidad
 		switch (entidad) {
-		case "Categoria":
-
-			Categoria categoria = categoriaService.findbyId(id).get();
-			categoria.setBigImage(BigName);
-			categoria.setMediumImage(MediumName);
-			categoria.setSmallImage(SmallName);
-			categoriaService.save(categoria);
-			
-			break;
 		case "Empresa":
-			Empresa empresa = EmpresaService.findById(id);
+			Empresa empresa = EmpresaService.findByNombre(nombre);
 			empresa.setBigImage(BigName);
 			empresa.setMediumImage(MediumName);
 			empresa.setSmallImage(SmallName);
-			EmpresaService.save(empresa, empresa.getCategoria().getNombre());
+			EmpresaRepository.save(empresa);
 			
 			break;
 			
+		case "Marca":
+			Marca marca = MarcaService.findByNombre(nombre);
+			marca.setBigImage(BigName);
+			marca.setMediumImage(MediumName);
+			marca.setSmallImage(SmallName);
+			MarcaRepository.save(marca);
+			
+			break;
 		default://la entidad no existe
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
 			return null;
 			
 	}    
 		imagenRepository.save(imagen);
 		imagenRepository.save(imagen2);
 		imagenRepository.save(imagen3);
-		response.setStatus(HttpServletResponse.SC_OK); 
 		return imagen;
 		
 	}
@@ -174,7 +177,6 @@ public class ImagenServiceImpl implements IImagenService{
 		builder.append("src"+ File.separator+"main"+File.separator+"resources"+File.separator+"imagenes");
 		builder.append(File.separator);
 		builder.append(ruta);
-		
 		Path path = Paths.get(builder.toString());
 		try {
 		    Files.delete(path);
@@ -205,23 +207,7 @@ public class ImagenServiceImpl implements IImagenService{
 	@Transactional
 	public void delete(Long id, String entidad) {
 		switch (entidad) {
-		case "Categoria":
-
-			Categoria categoria = categoriaService.findbyId(id).get();
-			if(categoria.getBigImage()!=null) {//verificamos que esta categoria si tenga imagenes
-				eliminarImagen(categoria.getBigImage());
-				categoria.setBigImage(null);
-				
-				eliminarImagen(categoria.getMediumImage());
-				categoria.setMediumImage(null);
-				
-				eliminarImagen(categoria.getSmallImage());
-				categoria.setSmallImage(null);
-				
-				categoriaService.save(categoria);
-			}
-			
-			break;
+		
 		case "Empresa":
 			Empresa empresa = EmpresaService.findById(id);
 			if(empresa.getBigImage()!=null) {//verificamos que esta empresa si tenga imagenes (Evitamos null pointer)
@@ -234,10 +220,25 @@ public class ImagenServiceImpl implements IImagenService{
 				eliminarImagen(empresa.getSmallImage());
 				empresa.setSmallImage(null);
 				
-				EmpresaService.save(empresa, empresa.getCategoria().getNombre());
+				EmpresaRepository.save(empresa);
 			}
 			break;
 			
+		case "Marca":
+			Marca marca = MarcaService.findById(id);
+			if(marca.getBigImage()!=null) {//verificamos que esta empresa si tenga imagenes (Evitamos null pointer)
+				eliminarImagen(marca.getBigImage());
+				marca.setBigImage(null);
+				
+				eliminarImagen(marca.getMediumImage());
+				marca.setMediumImage(null);
+				
+				eliminarImagen(marca.getSmallImage());
+				marca.setSmallImage(null);
+				
+				MarcaRepository.save(marca);
+			}
+			break;
 		default://la entidad no existe
 				
 		}
